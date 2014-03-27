@@ -219,7 +219,7 @@ class NetworkTests(test.TestCase):
         self.assertItemsEqual(subnets, [self.subnets.first()])
         self.assertEqual(len(ports), 0)
 
-    @test.create_stubs({api.neutron: ('profile_list',)})
+    @test.create_stubs({api.neutron: ('cfg_profile_list', 'profile_list',)})
     def test_network_create_get(self):
         # TODO(absubram): Remove if clause and create separate
         # test stubs for when profile_support is being used.
@@ -228,6 +228,10 @@ class NetworkTests(test.TestCase):
             net_profiles = self.net_profiles.list()
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                                .AndReturn(cfg_profiles)
         self.mox.ReplayAll()
 
         url = reverse('horizon:project:networks:create')
@@ -242,6 +246,7 @@ class NetworkTests(test.TestCase):
         self.assertQuerysetEqual(workflow.steps, expected_objs)
 
     @test.create_stubs({api.neutron: ('network_create',
+                                      'cfg_profile_list',
                                       'profile_list',)})
     def test_network_create_post(self):
         network = self.networks.first()
@@ -256,6 +261,12 @@ class NetworkTests(test.TestCase):
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
             params['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                                .AndReturn(cfg_profiles)
+            params['cfg_profile_id'] = cfg_profile_id
         api.neutron.network_create(IsA(http.HttpRequest),
                                    **params).AndReturn(network)
         self.mox.ReplayAll()
@@ -266,6 +277,8 @@ class NetworkTests(test.TestCase):
                      'with_subnet': False}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         form_data.update(form_data_no_subnet())
         url = reverse('horizon:project:networks:create')
         res = self.client.post(url, form_data)
@@ -275,6 +288,7 @@ class NetworkTests(test.TestCase):
 
     @test.create_stubs({api.neutron: ('network_create',
                                       'subnet_create',
+                                      'cfg_profile_list',
                                       'profile_list',)})
     def test_network_create_post_with_subnet(self):
         network = self.networks.first()
@@ -290,6 +304,12 @@ class NetworkTests(test.TestCase):
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
             params['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                            .AndReturn(cfg_profiles)
+            params['cfg_profile_id'] = cfg_profile_id
         api.neutron.network_create(IsA(http.HttpRequest),
                                    **params).AndReturn(network)
         api.neutron.subnet_create(IsA(http.HttpRequest),
@@ -307,6 +327,8 @@ class NetworkTests(test.TestCase):
                      'with_subnet': True}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         form_data.update(form_data_subnet(subnet, allocation_pools=[]))
         url = reverse('horizon:project:networks:create')
         res = self.client.post(url, form_data)
@@ -315,6 +337,7 @@ class NetworkTests(test.TestCase):
         self.assertRedirectsNoFollow(res, INDEX_URL)
 
     @test.create_stubs({api.neutron: ('network_create',
+                                      'cfg_profile_list',
                                       'profile_list',)})
     def test_network_create_post_network_exception(self):
         network = self.networks.first()
@@ -329,6 +352,12 @@ class NetworkTests(test.TestCase):
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
             params['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                                .AndReturn(cfg_profiles)
+            params['cfg_profile_id'] = cfg_profile_id
         api.neutron.network_create(IsA(http.HttpRequest),
                                    **params).AndRaise(self.exceptions.neutron)
         self.mox.ReplayAll()
@@ -339,6 +368,8 @@ class NetworkTests(test.TestCase):
                      'with_subnet': False}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         form_data.update(form_data_no_subnet())
         url = reverse('horizon:project:networks:create')
         res = self.client.post(url, form_data)
@@ -347,6 +378,7 @@ class NetworkTests(test.TestCase):
         self.assertRedirectsNoFollow(res, INDEX_URL)
 
     @test.create_stubs({api.neutron: ('network_create',
+                                      'cfg_profile_list',
                                       'profile_list')})
     def test_network_create_post_with_subnet_network_exception(self):
         network = self.networks.first()
@@ -362,6 +394,12 @@ class NetworkTests(test.TestCase):
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
             params['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                                    .AndReturn(cfg_profiles)
+            params['cfg_profile_id'] = cfg_profile_id
         api.neutron.network_create(IsA(http.HttpRequest),
                                    **params).AndRaise(self.exceptions.neutron)
         self.mox.ReplayAll()
@@ -371,6 +409,8 @@ class NetworkTests(test.TestCase):
                      'with_subnet': True}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         form_data.update(form_data_subnet(subnet, allocation_pools=[]))
         url = reverse('horizon:project:networks:create')
         res = self.client.post(url, form_data)
@@ -381,6 +421,7 @@ class NetworkTests(test.TestCase):
     @test.create_stubs({api.neutron: ('network_create',
                                       'network_delete',
                                       'subnet_create',
+                                      'cfg_profile_list',
                                       'profile_list')})
     def test_network_create_post_with_subnet_subnet_exception(self):
         network = self.networks.first()
@@ -396,6 +437,12 @@ class NetworkTests(test.TestCase):
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
             params['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                        .AndReturn(cfg_profiles)
+            params['cfg_profile_id'] = cfg_profile_id
         api.neutron.network_create(IsA(http.HttpRequest),
                                    **params).AndReturn(network)
         api.neutron.subnet_create(IsA(http.HttpRequest),
@@ -415,6 +462,8 @@ class NetworkTests(test.TestCase):
                      'with_subnet': True}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         form_data.update(form_data_subnet(subnet, allocation_pools=[]))
         url = reverse('horizon:project:networks:create')
         res = self.client.post(url, form_data)
@@ -422,7 +471,7 @@ class NetworkTests(test.TestCase):
         self.assertNoFormErrors(res)
         self.assertRedirectsNoFollow(res, INDEX_URL)
 
-    @test.create_stubs({api.neutron: ('profile_list',)})
+    @test.create_stubs({api.neutron: ('cfg_profile_list', 'profile_list',)})
     def test_network_create_post_with_subnet_nocidr(self):
         network = self.networks.first()
         subnet = self.subnets.first()
@@ -434,6 +483,11 @@ class NetworkTests(test.TestCase):
             net_profile_id = self.net_profiles.first().id
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                                .AndReturn(cfg_profiles)
         self.mox.ReplayAll()
 
         form_data = {'net_name': network.name,
@@ -441,6 +495,8 @@ class NetworkTests(test.TestCase):
                      'with_subnet': True}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         form_data.update(form_data_subnet(subnet, cidr='',
                                           allocation_pools=[]))
         url = reverse('horizon:project:networks:create')
@@ -449,7 +505,7 @@ class NetworkTests(test.TestCase):
         self.assertContains(res, escape('Specify "Network Address" or '
                                         'clear "Create Subnet" checkbox.'))
 
-    @test.create_stubs({api.neutron: ('profile_list',)})
+    @test.create_stubs({api.neutron: ('cfg_profile_list', 'profile_list',)})
     def test_network_create_post_with_subnet_cidr_without_mask(self):
         network = self.networks.first()
         subnet = self.subnets.first()
@@ -461,6 +517,11 @@ class NetworkTests(test.TestCase):
             net_profile_id = self.net_profiles.first().id
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                                .AndReturn(cfg_profiles)
             self.mox.ReplayAll()
 
         form_data = {'net_name': network.name,
@@ -468,6 +529,8 @@ class NetworkTests(test.TestCase):
                      'with_subnet': True}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         form_data.update(form_data_subnet(subnet, cidr='10.0.0.0',
                                           allocation_pools=[]))
         url = reverse('horizon:project:networks:create')
@@ -476,7 +539,7 @@ class NetworkTests(test.TestCase):
         expected_msg = "The subnet in the Network Address is too small (/32)."
         self.assertContains(res, expected_msg)
 
-    @test.create_stubs({api.neutron: ('profile_list',)})
+    @test.create_stubs({api.neutron: ('cfg_profile_list', 'profile_list',)})
     def test_network_create_post_with_subnet_cidr_inconsistent(self):
         network = self.networks.first()
         subnet = self.subnets.first()
@@ -488,6 +551,11 @@ class NetworkTests(test.TestCase):
             net_profile_id = self.net_profiles.first().id
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                        .AndReturn(cfg_profiles)
         self.mox.ReplayAll()
 
         # dummy IPv6 address
@@ -497,6 +565,8 @@ class NetworkTests(test.TestCase):
                      'with_subnet': True}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         form_data.update(form_data_subnet(subnet, cidr=cidr,
                                           allocation_pools=[]))
         url = reverse('horizon:project:networks:create')
@@ -505,7 +575,7 @@ class NetworkTests(test.TestCase):
         expected_msg = 'Network Address and IP version are inconsistent.'
         self.assertContains(res, expected_msg)
 
-    @test.create_stubs({api.neutron: ('profile_list',)})
+    @test.create_stubs({api.neutron: ('cfg_profile_list', 'profile_list',)})
     def test_network_create_post_with_subnet_gw_inconsistent(self):
         network = self.networks.first()
         subnet = self.subnets.first()
@@ -517,6 +587,11 @@ class NetworkTests(test.TestCase):
             net_profile_id = self.net_profiles.first().id
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                        .AndReturn(cfg_profiles)
         self.mox.ReplayAll()
 
         # dummy IPv6 address
@@ -526,6 +601,8 @@ class NetworkTests(test.TestCase):
                      'with_subnet': True}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         form_data.update(form_data_subnet(subnet, gateway_ip=gateway_ip,
                                           allocation_pools=[]))
         url = reverse('horizon:project:networks:create')

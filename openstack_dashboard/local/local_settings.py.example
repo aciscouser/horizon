@@ -176,6 +176,8 @@ OPENSTACK_NEUTRON_NETWORK = {
     # profile_support can be turned on if needed.
     'profile_support': None,
     #'profile_support': 'cisco',
+    #'cisco_dfa_support': True,
+    'cisco_dfa_support': False
 }
 
 # The OPENSTACK_IMAGE_BACKEND settings can be used to customize features

@@ -39,6 +39,8 @@ class CreateNetworkInfoAction(workflows.Action):
                                required=False)
     if api.neutron.is_port_profiles_supported():
         net_profile_id = forms.ChoiceField(label=_("Network Profile"))
+    if api.neutron.is_cisco_dfa_supported():
+        cfg_profile_id = forms.ChoiceField(label=_("Configuration Profile"))
     admin_state = forms.BooleanField(label=_("Admin State"),
                                      initial=True, required=False)
 
@@ -66,6 +68,28 @@ class CreateNetworkInfoAction(workflows.Action):
     # TODO(absubram): Add ability to view network profile information
     # in the network detail if a profile is used.
 
+    if api.neutron.is_cisco_dfa_supported():
+        def __init__(self, request, *args, **kwargs):
+            super(CreateNetworkInfoAction, self).__init__(request,
+                                                          *args, **kwargs)
+            self.fields['cfg_profile_id'].choices = (
+                self.get_config_profile_choices(request))
+
+        def get_config_profile_choices(self, request):
+            cfg_profile_choices = [('', _("Select a Config Profile"))]
+            for cprof in self._get_cfg_profiles(request):
+                cfg_profile_choices.append((cprof.id, cprof.name))
+            return cfg_profile_choices
+
+        def _get_cfg_profiles(self, request):
+            cfg_profiles = []
+            try:
+                cfg_profiles = api.neutron.cfg_profile_list(request)
+            except Exception:
+                msg = _('Network Configuration Profiles could not be retrieved.')
+                exceptions.handle(request, msg)
+            return cfg_profiles
+
     class Meta:
         name = _("Network")
         help_text = _("From here you can create a new network.\n"
@@ -77,6 +101,8 @@ class CreateNetworkInfo(workflows.Step):
     action_class = CreateNetworkInfoAction
     if api.neutron.is_port_profiles_supported():
         contributes = ("net_name", "admin_state", "net_profile_id")
+    elif api.neutron.is_cisco_dfa_supported():
+        contributes = ("net_name", "admin_state", "cfg_profile_id")
     else:
         contributes = ("net_name", "admin_state")
 
@@ -289,6 +315,8 @@ class CreateNetwork(workflows.Workflow):
                       'admin_state_up': data['admin_state']}
             if api.neutron.is_port_profiles_supported():
                 params['net_profile_id'] = data['net_profile_id']
+            if api.neutron.is_cisco_dfa_supported():
+                params['cfg_profile_id'] = data['cfg_profile_id']
             network = api.neutron.network_create(request, **params)
             network.set_id_as_name_if_empty()
             self.context['net_id'] = network.id

@@ -36,6 +36,8 @@ class CreateNetwork(forms.SelfHandlingForm):
     tenant_id = forms.ChoiceField(label=_("Project"))
     if api.neutron.is_port_profiles_supported():
         net_profile_id = forms.ChoiceField(label=_("Network Profile"))
+    if api.neutron.is_cisco_dfa_supported():
+        cfg_profile_id = forms.ChoiceField(label=_("Configuration Profile"))
     admin_state = forms.BooleanField(label=_("Admin State"),
                                      initial=True, required=False)
     shared = forms.BooleanField(label=_("Shared"),
@@ -60,11 +62,21 @@ class CreateNetwork(forms.SelfHandlingForm):
             self.fields['net_profile_id'].choices = (
                 self.get_network_profile_choices(request))
 
+        if api.neutron.is_cisco_dfa_supported():
+            self.fields['cfg_profile_id'].choices = (
+                self.get_config_profile_choices(request))
+
     def get_network_profile_choices(self, request):
         profile_choices = [('', _("Select a profile"))]
         for profile in self._get_profiles(request, 'network'):
             profile_choices.append((profile.id, profile.name))
         return profile_choices
+
+    def get_config_profile_choices(self, request):
+        cfg_profile_choices = [('', _("Select a Config Profile"))]
+        for cprof in self._get_cfg_profiles(request):
+            cfg_profile_choices.append((cprof.id, cprof.name))
+        return cfg_profile_choices
 
     def _get_profiles(self, request, type_p):
         profiles = []
@@ -75,6 +87,16 @@ class CreateNetwork(forms.SelfHandlingForm):
             exceptions.handle(request, msg)
         return profiles
 
+    def _get_cfg_profiles(self, request):
+        cfg_profiles = []
+        try:
+            cfg_profiles = api.neutron.cfg_profile_list(request)
+        except Exception:
+            msg = _('Network Configuration Profiles could not be retrieved.')
+            exceptions.handle(request, msg)
+        return cfg_profiles
+
+
     def handle(self, request, data):
         try:
             params = {'name': data['name'],
@@ -84,6 +106,8 @@ class CreateNetwork(forms.SelfHandlingForm):
                       'router:external': data['external']}
             if api.neutron.is_port_profiles_supported():
                 params['net_profile_id'] = data['net_profile_id']
+            if api.neutron.is_cisco_dfa_supported():
+                params['cfg_profile_id'] = data['cfg_profile_id']
             network = api.neutron.network_create(request, **params)
             msg = _('Network %s was successfully created.') % data['name']
             LOG.debug(msg)

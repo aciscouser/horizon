@@ -52,6 +52,7 @@ def data(TEST):
     TEST.firewalls = utils.TestDataContainer()
     TEST.fw_policies = utils.TestDataContainer()
     TEST.fw_rules = utils.TestDataContainer()
+    TEST.cfg_profiles = utils.TestDataContainer()
 
     # data return by neutronclient
     TEST.api_agents = utils.TestDataContainer()
@@ -78,6 +79,7 @@ def data(TEST):
     TEST.api_firewalls = utils.TestDataContainer()
     TEST.api_fw_policies = utils.TestDataContainer()
     TEST.api_fw_rules = utils.TestDataContainer()
+    TEST.api_cfg_profiles = utils.TestDataContainer()
 
     #------------------------------------------------------------
     # 1st network
@@ -148,6 +150,14 @@ def data(TEST):
     TEST.api_policy_profile_binding.add(policy_profile_binding_dict)
     TEST.policy_profile_binding.add(neutron.Profile(
         policy_profile_binding_dict))
+
+    # Config profile for network when cisco DFA is enabled.
+    cfg_profile_dict = {'name': 'defaultNetworkL2Profile',
+                        'id': '0e05baca69434e948be5c0e40b185a6d'
+                       }
+
+    TEST.api_cfg_profiles.add(cfg_profile_dict)
+    TEST.cfg_profiles.add(neutron.CfgProfile(cfg_profile_dict))
 
     # ports on 1st network
     port_dict = {'admin_state_up': True,
@@ -926,6 +936,14 @@ def data(TEST):
     TEST.api_net_profiles.add(net_profile_dict)
     TEST.net_profiles.add(neutron.Profile(net_profile_dict))
 
+    # Config profile for network when cisco DFA is enabled.
+    cfg_profile_dict = {'name': 'defaultNetworkIpv4TfProfile',
+                        'id': 'b06599887e294b4b9d7872c68a353138'
+                       }
+
+    TEST.api_cfg_profiles.add(cfg_profile_dict)
+    TEST.cfg_profiles.add(neutron.CfgProfile(cfg_profile_dict))
+
     # 3rd network profile binding
     network_profile_binding_dict = {'profile_id':
                                     '00000000-3333-3333-3333-000000000000',
@@ -955,3 +973,11 @@ def data(TEST):
     TEST.api_network_profile_binding.add(network_profile_binding_dict)
     TEST.network_profile_binding.add(neutron.Profile(
         network_profile_binding_dict))
+    # Config profile for network when cisco DFA is enabled.
+    cfg_profile_dict = {'name': 'defaultNetworkIpv4EfProfile',
+                        'id': 'b7ef03ec8cef4fe094806ba2cf333e49'
+                       }
+
+    TEST.api_cfg_profiles.add(cfg_profile_dict)
+    TEST.cfg_profiles.add(neutron.CfgProfile(cfg_profile_dict))
+

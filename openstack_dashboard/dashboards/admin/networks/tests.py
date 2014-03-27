@@ -149,7 +149,7 @@ class NetworkTests(test.BaseAdminViewTests):
         self.assertItemsEqual(subnets, [self.subnets.first()])
         self.assertEqual(len(ports), 0)
 
-    @test.create_stubs({api.neutron: ('profile_list',),
+    @test.create_stubs({api.neutron: ('profile_list', 'cfg_profile_list',),
                         api.keystone: ('tenant_list',)})
     def test_network_create_get(self):
         tenants = self.tenants.list()
@@ -162,6 +162,10 @@ class NetworkTests(test.BaseAdminViewTests):
             net_profiles = self.net_profiles.list()
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                                .AndReturn(cfg_profiles)
         self.mox.ReplayAll()
 
         url = reverse('horizon:admin:networks:create')
@@ -170,6 +174,7 @@ class NetworkTests(test.BaseAdminViewTests):
         self.assertTemplateUsed(res, 'admin/networks/create.html')
 
     @test.create_stubs({api.neutron: ('network_create',
+                                      'cfg_profile_list',
                                       'profile_list',),
                         api.keystone: ('tenant_list',)})
     def test_network_create_post(self):
@@ -192,6 +197,12 @@ class NetworkTests(test.BaseAdminViewTests):
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
             params['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                               .AndReturn(cfg_profiles)
+            params['cfg_profile_id'] = cfg_profile_id
         api.neutron.network_create(IsA(http.HttpRequest), **params)\
             .AndReturn(network)
         self.mox.ReplayAll()
@@ -203,6 +214,8 @@ class NetworkTests(test.BaseAdminViewTests):
                      'shared': True}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         url = reverse('horizon:admin:networks:create')
         res = self.client.post(url, form_data)
 
@@ -210,6 +223,7 @@ class NetworkTests(test.BaseAdminViewTests):
         self.assertRedirectsNoFollow(res, INDEX_URL)
 
     @test.create_stubs({api.neutron: ('network_create',
+                                      'cfg_profile_list',
                                       'profile_list',),
                         api.keystone: ('tenant_list',)})
     def test_network_create_post_network_exception(self):
@@ -232,6 +246,12 @@ class NetworkTests(test.BaseAdminViewTests):
             api.neutron.profile_list(IsA(http.HttpRequest),
                                      'network').AndReturn(net_profiles)
             params['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            cfg_profiles = self.cfg_profiles.list()
+            cfg_profile_id = self.cfg_profiles.first().id
+            api.neutron.cfg_profile_list(IsA(http.HttpRequest))\
+                                                    .AndReturn(cfg_profiles)
+            params['cfg_profile_id'] = cfg_profile_id
         api.neutron.network_create(IsA(http.HttpRequest), **params)\
             .AndRaise(self.exceptions.neutron)
         self.mox.ReplayAll()
@@ -243,6 +263,8 @@ class NetworkTests(test.BaseAdminViewTests):
                      'shared': False}
         if api.neutron.is_port_profiles_supported():
             form_data['net_profile_id'] = net_profile_id
+        if api.neutron.is_cisco_dfa_supported():
+            form_data['cfg_profile_id'] = cfg_profile_id
         url = reverse('horizon:admin:networks:create')
         res = self.client.post(url, form_data)
 
@@ -853,3 +875,4 @@ class NetworkPortTests(test.BaseAdminViewTests):
         res = self.client.post(url, form_data)
 
         self.assertRedirectsNoFollow(res, url)
+
