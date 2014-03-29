@@ -102,12 +102,14 @@ class Port(NeutronAPIDictWrapper):
             'UP' if apiresource['admin_state_up'] else 'DOWN'
         super(Port, self).__init__(apiresource)
 
+
 class CfgProfile(NeutronAPIDictWrapper):
     """Wrapper for neutron config profiles."""
     _attrs = ['id', 'name']
 
     def __init__(self, apiresource):
         super(CfgProfile, self).__init__(apiresource)
+
 
 class Profile(NeutronAPIDictWrapper):
     """Wrapper for neutron profiles."""
@@ -582,13 +584,12 @@ def port_get(request, port_id, **params):
     port = neutronclient(request).show_port(port_id, **params).get('port')
     return Port(port)
 
+
 def cfg_profile_list(request, **params):
-    cfg_profiles = neutronclient(request).list_config_profiles(
-                                            **params).get('config_profiles')
+    cfg_profiles = \
+    neutronclient(request).list_config_profiles(**params).get('config_profiles')
     LOG.debug("cfg_profile_list: profiles={0}".format(cfg_profiles))
-
     return [CfgProfile(p) for p in cfg_profiles]
-
 
 
 def port_create(request, network_id, **kwargs):
@@ -897,4 +898,3 @@ def is_cisco_dfa_supported():
     network_config = getattr(settings, 'OPENSTACK_NEUTRON_NETWORK', {})
     cisco_dfa_support = network_config.get('cisco_dfa_support', False)
     return cisco_dfa_support
-

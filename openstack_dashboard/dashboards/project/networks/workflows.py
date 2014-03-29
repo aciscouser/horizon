@@ -44,12 +44,17 @@ class CreateNetworkInfoAction(workflows.Action):
     admin_state = forms.BooleanField(label=_("Admin State"),
                                      initial=True, required=False)
 
-    if api.neutron.is_port_profiles_supported():
+    if api.neutron.is_port_profiles_supported() or \
+                     api.neutron.is_cisco_dfa_supported():
         def __init__(self, request, *args, **kwargs):
             super(CreateNetworkInfoAction, self).__init__(request,
                                                           *args, **kwargs)
-            self.fields['net_profile_id'].choices = (
-                self.get_network_profile_choices(request))
+            if api.neutron.is_port_profiles_supported():
+                self.fields['net_profile_id'].choices = (
+                        self.get_network_profile_choices(request))
+            else:
+                self.fields['cfg_profile_id'].choices = (
+                        self.get_network_profile_choices(request))
 
         def get_network_profile_choices(self, request):
             profile_choices = [('', _("Select a profile"))]
@@ -59,7 +64,10 @@ class CreateNetworkInfoAction(workflows.Action):
 
         def _get_profiles(self, request, type_p):
             try:
-                profiles = api.neutron.profile_list(request, type_p)
+                if api.neutron.is_port_profiles_supported():
+                    profiles = api.neutron.profile_list(request, type_p)
+                else:
+                    profiles = api.neutron.cfg_profile_list(request)
             except Exception:
                 profiles = []
                 msg = _('Network Profiles could not be retrieved.')
@@ -67,28 +75,6 @@ class CreateNetworkInfoAction(workflows.Action):
             return profiles
     # TODO(absubram): Add ability to view network profile information
     # in the network detail if a profile is used.
-
-    if api.neutron.is_cisco_dfa_supported():
-        def __init__(self, request, *args, **kwargs):
-            super(CreateNetworkInfoAction, self).__init__(request,
-                                                          *args, **kwargs)
-            self.fields['cfg_profile_id'].choices = (
-                self.get_config_profile_choices(request))
-
-        def get_config_profile_choices(self, request):
-            cfg_profile_choices = [('', _("Select a Config Profile"))]
-            for cprof in self._get_cfg_profiles(request):
-                cfg_profile_choices.append((cprof.id, cprof.name))
-            return cfg_profile_choices
-
-        def _get_cfg_profiles(self, request):
-            cfg_profiles = []
-            try:
-                cfg_profiles = api.neutron.cfg_profile_list(request)
-            except Exception:
-                msg = _('Network Configuration Profiles could not be retrieved.')
-                exceptions.handle(request, msg)
-            return cfg_profiles
 
     class Meta:
         name = _("Network")

@@ -73,7 +73,7 @@ class CreateNetwork(forms.SelfHandlingForm):
         return profile_choices
 
     def get_config_profile_choices(self, request):
-        cfg_profile_choices = [('', _("Select a Config Profile"))]
+        cfg_profile_choices = [('', _("Select a profile"))]
         for cprof in self._get_cfg_profiles(request):
             cfg_profile_choices.append((cprof.id, cprof.name))
         return cfg_profile_choices
@@ -95,7 +95,6 @@ class CreateNetwork(forms.SelfHandlingForm):
             msg = _('Network Configuration Profiles could not be retrieved.')
             exceptions.handle(request, msg)
         return cfg_profiles
-
 
     def handle(self, request, data):
         try:

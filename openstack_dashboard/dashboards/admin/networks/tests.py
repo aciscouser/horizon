@@ -875,4 +875,3 @@ class NetworkPortTests(test.BaseAdminViewTests):
         res = self.client.post(url, form_data)
 
         self.assertRedirectsNoFollow(res, url)
-

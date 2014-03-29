@@ -122,9 +122,9 @@ OPENSTACK_NEUTRON_NETWORK = {
     # TODO (absubram): Need to make this permanent when a better solution
     # for run_tests is implemented to use with and without the n1k sub-plugin.
     'profile_support': None,
-    #'profile_support': 'cisco'
-    'cisco_dfa_support' : False,
-    #'cisco_dfa_support' : True,
+    #'profile_support': 'cisco',
+    'cisco_dfa_support': False,
+    #'cisco_dfa_support': True,
 }
 
 OPENSTACK_HYPERVISOR_FEATURES = {

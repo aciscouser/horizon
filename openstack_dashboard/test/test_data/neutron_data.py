@@ -153,8 +153,7 @@ def data(TEST):
 
     # Config profile for network when cisco DFA is enabled.
     cfg_profile_dict = {'name': 'defaultNetworkL2Profile',
-                        'id': '0e05baca69434e948be5c0e40b185a6d'
-                       }
+                        'id': '0e05baca69434e948be5c0e40b185a6d'}
 
     TEST.api_cfg_profiles.add(cfg_profile_dict)
     TEST.cfg_profiles.add(neutron.CfgProfile(cfg_profile_dict))
@@ -938,8 +937,7 @@ def data(TEST):
 
     # Config profile for network when cisco DFA is enabled.
     cfg_profile_dict = {'name': 'defaultNetworkIpv4TfProfile',
-                        'id': 'b06599887e294b4b9d7872c68a353138'
-                       }
+                        'id': 'b06599887e294b4b9d7872c68a353138'}
 
     TEST.api_cfg_profiles.add(cfg_profile_dict)
     TEST.cfg_profiles.add(neutron.CfgProfile(cfg_profile_dict))
@@ -975,9 +973,7 @@ def data(TEST):
         network_profile_binding_dict))
     # Config profile for network when cisco DFA is enabled.
     cfg_profile_dict = {'name': 'defaultNetworkIpv4EfProfile',
-                        'id': 'b7ef03ec8cef4fe094806ba2cf333e49'
-                       }
+                        'id': 'b7ef03ec8cef4fe094806ba2cf333e49'}
 
     TEST.api_cfg_profiles.add(cfg_profile_dict)
     TEST.cfg_profiles.add(neutron.CfgProfile(cfg_profile_dict))
-
