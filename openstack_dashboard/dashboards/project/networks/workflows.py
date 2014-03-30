@@ -49,12 +49,11 @@ class CreateNetworkInfoAction(workflows.Action):
         def __init__(self, request, *args, **kwargs):
             super(CreateNetworkInfoAction, self).__init__(request,
                                                           *args, **kwargs)
+            choices = (self.get_network_profile_choices(request))
             if api.neutron.is_port_profiles_supported():
-                self.fields['net_profile_id'].choices = (
-                        self.get_network_profile_choices(request))
+                self.fields['net_profile_id'].choices = choices
             else:
-                self.fields['cfg_profile_id'].choices = (
-                        self.get_network_profile_choices(request))
+                self.fields['cfg_profile_id'].choices = choices
 
         def get_network_profile_choices(self, request):
             profile_choices = [('', _("Select a profile"))]

@@ -586,8 +586,8 @@ def port_get(request, port_id, **params):
 
 
 def cfg_profile_list(request, **params):
-    cfg_profiles = \
-    neutronclient(request).list_config_profiles(**params).get('config_profiles')
+    nc = neutronclient(request)
+    cfg_profiles = nc.list_config_profiles(**params).get('config_profiles')
     LOG.debug("cfg_profile_list: profiles={0}".format(cfg_profiles))
     return [CfgProfile(p) for p in cfg_profiles]
 
